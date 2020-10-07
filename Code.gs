@@ -7,7 +7,7 @@
 //                solution should be explored
 //    Parameters: e: spreadsheet event
 //       Returns: Int: NA
-//     Revisions: 10/07/2020: Initial
+//     Revisions: DCD 10/07/2020: Initial
 function onEdit(e) {
 
   // Load column and range information
@@ -122,7 +122,7 @@ function onEdit(e) {
 //   Description: Calculates the week of a month
 //    Parameters: Date: Date to extract week of month
 //       Returns: Int: week number
-//     Revisions: 10/07/2020: Initial
+//     Revisions: DCD 10/07/2020: Initial
 
 function getWeekOfMonth(date) {  
  let adjustedDate = date.getDate()+date.getDay();
