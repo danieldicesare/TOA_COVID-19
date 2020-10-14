@@ -28,6 +28,10 @@ function onEdit(e) {
     var today = new Date().toISOString().slice(0,10);    
     var currentDate = new Date();      
     
+    
+    // Load current hour of the day and day of the week
+    var hourOfDay = currentDate.getHours();
+        
     // Load day of the week    
     var dayOfWeek = currentDate.getDay(); 
     
@@ -46,7 +50,7 @@ function onEdit(e) {
     
 
     
-    // Is the compare date and the last update date the same? If not, ensure that we have not made a change for this week.
+    // If the compare date and the last update date the same? If not, ensure that we have not made a change for this week.
     var updateOk = 1;
     if(today === oldUpdateDate)
     {
@@ -74,10 +78,8 @@ function onEdit(e) {
     // Set the oldValue if we have not changed it already for today
     if(updateOk === 1)
     { 
-
       // Set the updatedate date to today
-      ss.getRange(dateCol+currentRow).setValue(today);
-      
+      ss.getRange(dateCol+currentRow).setValue(today);      
             
       // Set the report col
       ss.getRange(reportCol+currentRow).setValue(rptDate);     
@@ -86,7 +88,18 @@ function onEdit(e) {
       let dateParts = rptDate.split('-');
       var setOldRptDate = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
       
-      //ss.getRange("S"+currentRow).setValue(setOldRptDate);
+      // Just to make things more confusing, it turns out that the users want the report to report up to 3:00 on Fridays (not 12:00)
+      // This logic address will set any changes made on Fridays after 3:00 to report the following week
+      if(dayOfWeek == 5 && hourOfDay >= 15)
+      {        
+        var after3rptDate = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+        after3rptDate = new Date(after3rptDate.setDate(after3rptDate.getDate() + 7)).toISOString().slice(0,10);
+        
+        Logger.log('Friday after 3PM Logic: Original RptDate: ' + rptDate + " |New RptDate: " + after3rptDate + " |Update Ok: " + updateOk );
+        
+        ss.getRange(reportCol+currentRow).setValue(after3rptDate);     
+      }
+      
       
       var oldRptDate = new Date(setOldRptDate.setDate(setOldRptDate.getDate() - 7)).toISOString().slice(0,10);
       
