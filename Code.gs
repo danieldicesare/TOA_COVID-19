@@ -8,6 +8,7 @@
 //    Parameters: e: spreadsheet event
 //       Returns: Int: NA
 //     Revisions: DCD 10/07/2020: Initial
+//                DCD 10/16/2020: Added Friday 3PM logic
 function onEdit(e) {
 
   // Load column and range information
