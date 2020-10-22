@@ -9,6 +9,9 @@
 //       Returns: Int: NA
 //     Revisions: DCD 10/07/2020: Initial
 //                DCD 10/16/2020: Added Friday 3PM logic
+//                DCD 10/21/2020: Adjusted requirement to show all schools not just schools with COVID. Added Total Count column and populted
+//                                Added rows 2 through 14 with base values to trick report into totalling correctly
+//                                Added new tab Schools with name of school and sort order
 function onEdit(e) {
 
   // Load column and range information
@@ -20,7 +23,8 @@ function onEdit(e) {
   
   // Are we modifying the status?  
   if(e.source.getActiveSheet().getName() === "Census" && currentCol === 15 && currentRow != 1){    
-       
+    
+    var totalCol = "AE";
     var dateCol = "AD";    
     var reportCol = "AC";    
     var oldValCol = "AB";
@@ -116,6 +120,7 @@ function onEdit(e) {
       if(e.value === "Positive")
       {
         ss.getRange(oldRptDateCol+currentRow).setValue("01/01/2020");
+        ss.getRange(totalCol + currentRow).setValue(1);
       }
       
     }else
