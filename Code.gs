@@ -29,10 +29,17 @@ function onEdit(e) {
     var reportCol = "AC";    
     var oldValCol = "AB";
     var oldRptDateCol = "AA";
-    var oldUpdateDate = ss.getRange(dateCol+currentRow).getValue().toISOString().slice(0,10);
+    var oldUpdateDate = new Date().toISOString().slice(0,10);    
     var today = new Date().toISOString().slice(0,10);    
     var currentDate = new Date();      
-    
+      
+       
+    // DCD 11/06/2020: Added logic for initiating
+    if(ss.getRange(dateCol+currentRow).getValue() === "")      
+    {
+       Logger.log("Setting: oldUpdateDate to 01/01/2001");
+       oldUpdateDate = "01/01/2001";
+    }
     
     // Load current hour of the day and day of the week
     var hourOfDay = currentDate.getHours();
