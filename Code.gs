@@ -12,6 +12,7 @@
 //                DCD 10/21/2020: Adjusted requirement to show all schools not just schools with COVID. Added Total Count column and populted
 //                                Added rows 2 through 14 with base values to trick report into totalling correctly
 //                                Added new tab Schools with name of school and sort order
+//                DCD 11/09/2020: Added additional logging.
 function onEdit(e) {
 
   // Load column and range information
@@ -19,7 +20,16 @@ function onEdit(e) {
   var currentRow = range.getRow();
   var currentCol = range.getColumn();
   var ss = SpreadsheetApp.getActiveSheet();
+  var userProp = PropertiesService.getUserProperties();
   
+
+    
+  // DCD 11/09/2020: Added logging  
+  Logger.log(JSON.stringify(e));
+  
+    
+  // DCD 11/09/2020: Added logging
+  Logger.log("Editing sheet: " + e.source.getActiveSheet().getName() + " || row: " + currentRow + " || cell: " + currentCol);
   
   // Are we modifying the status?  
   if(e.source.getActiveSheet().getName() === "Census" && currentCol === 15 && currentRow != 1){    
@@ -29,17 +39,29 @@ function onEdit(e) {
     var reportCol = "AC";    
     var oldValCol = "AB";
     var oldRptDateCol = "AA";
-    var oldUpdateDate = new Date().toISOString().slice(0,10);    
+    var oldUpdateDate = "";
     var today = new Date().toISOString().slice(0,10);    
-    var currentDate = new Date();      
-      
+    var currentDate = new Date(); 
+   
+
        
     // DCD 11/06/2020: Added logic for initiating
     if(ss.getRange(dateCol+currentRow).getValue() === "")      
-    {
-       Logger.log("Setting: oldUpdateDate to 01/01/2001");
+    {       
        oldUpdateDate = "01/01/2001";
+      
+      // DCD 11/09/2020: Added logging
+      Logger.log("Old Update Date: NULL: Setting to: " + oldUpdateDate);
+
+    }else
+    {
+       oldUpdateDate = ss.getRange(dateCol+currentRow).getValue().toISOString().slice(0,10);
+      
+      // DCD 11/09/2020: Added logging
+      Logger.log("Old Update Date: " + oldUpdateDate);
+
     }
+    
     
     // Load current hour of the day and day of the week
     var hourOfDay = currentDate.getHours();
@@ -58,21 +80,44 @@ function onEdit(e) {
     var weekOfMonthToday = getWeekOfMonth( todayDate);
     var lastUpdateDate = new Date(oldUpdateDate);
     var weekOfMonthLastUpdateDate = getWeekOfMonth(lastUpdateDate);
-    Logger.log("Week of Month This Week: " + weekOfMonthToday + " | Date: " + todayDate +  " || Week of Month Last Update: " + weekOfMonthLastUpdateDate + " | Date: " + lastUpdateDate);
     
-
+   
     
     // If the compare date and the last update date the same? If not, ensure that we have not made a change for this week.
     var updateOk = 1;
+    var loggingMesageState = "ok";    
     if(today === oldUpdateDate)
     {
-      updateOk = 0;
+      updateOk = 0;      
+      loggingMesageState = "datefail";
     }else{
       if(weekOfMonthToday === weekOfMonthLastUpdateDate ) 
       {
         updateOk = 0;
+        loggingMesageState = "weekfail";
       }
     }
+   
+    
+     // DCD 11/09/2020: Added logging
+    Logger.log("           Today Info: Week of Month: " + weekOfMonthToday + " | Date: " + todayDate );
+    Logger.log("Last Update Date Info: Week of Month: " + weekOfMonthLastUpdateDate + " | Date: " + lastUpdateDate);
+    
+    if(loggingMesageState === "ok")
+    {
+      Logger.log("Update Check: OK");
+    }else if (loggingMesageState === "datefail")
+    {
+      Logger.log("Update Check: Failed because today and last update date are equal");
+    }else if(loggingMesageState === "weekfail")
+    {
+      Logger.log("Update Check: Failed because last updated month and current month are the same.");
+    }
+      
+    
+    
+    
+    
      
     // Set and format report date
     var rptDate = new Date(currentDate.setDate(currentDate.getDate() +5 - dayOfWeek)).toISOString().slice(0,10);
@@ -83,8 +128,7 @@ function onEdit(e) {
       rptDate = new Date(currentDate.setDate(currentDate.getDate() + dayOfWeek)).toISOString().slice(0,10);       
     }       
         
-    Logger.log('OldReportUpdateDate: ' + oldUpdateDate + " |Today: " + today + " |Update Ok: " + updateOk );
-    
+        
    
     
     // Set the oldValue if we have not changed it already for today
