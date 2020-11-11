@@ -13,6 +13,8 @@
 //                                Added rows 2 through 14 with base values to trick report into totalling correctly
 //                                Added new tab Schools with name of school and sort order
 //                DCD 11/09/2020: Added additional logging.
+//                DCD 11/10/2020: Added logic for total count and e.prevVal
+//                DCD 11/11/2020: New requirement to support coulmns shifting. Added logic to find the necessary columns for the report. 
 function onEdit(e) {
 
   // Load column and range information
@@ -26,6 +28,7 @@ function onEdit(e) {
   var rowEnd = e.range.rowEnd;
   var columnStart = e.range.columnStart;
   var columnEnd = e.range.columnEnd;
+  var numberOfColumns = ss.getMaxColumns();
   
 
     
@@ -35,26 +38,74 @@ function onEdit(e) {
  // DCD 11/09/2020: Added logging
   writeLog("Editing sheet: " + e.source.getActiveSheet().getName() + " || rowStart: " + rowStart + " || rowEnd:  " + rowEnd +  " || cellStart: " + columnStart + " || cellEnd: " + columnEnd);
    
- 
+ // DCD 11/09/2020: Added logging
+ // Number of Columns  
+  writeLog("Number of Columns: " + numberOfColumns);
   
   
   // Are we modifying the status? 
   // DCD 11/10/2020: Check all the time regardless of what cell is changed
   //if(e.source.getActiveSheet().getName() === "Census" && currentCol === 15 && currentRow != 1)
   if(e.source.getActiveSheet().getName() === "Census")
-  {        
+  { 
     
-    for( var currentRow = rowStart; currentRow <= rowEnd; currentRow ++)
-    {
-      
-      Logger.log("============================ Row: " + currentRow + " Start =============================" );
- 
+      // Set column locations
       var statusCol = "O";
       var totalCol = "AE";
       var dateCol = "AD";    
       var reportCol = "AC";    
       var oldValCol = "AB";
       var oldRptDateCol = "AA";
+            
+       
+    
+     /// DCD 11/11/2020: Check to see if columns changed
+     for( var columnNum = 1; columnNum < ss.getMaxColumns(); columnNum ++)
+     {
+       
+       
+       var currentColumn = columnToLetter(columnNum);        
+       var colValue = ss.getRange(1, columnNum).getValue()
+       
+       
+               
+       if( ss.getRange(1, columnNum).getValue() === "Status")
+       {
+         statusCol = currentColumn;
+       }
+       else if( ss.getRange(1, columnNum).getValue() === "Previous Rpt Dt")
+       {
+         oldRptDateCol = currentColumn; 
+       }else if( ss.getRange(1, columnNum).getValue() === "Previous Status")
+       {
+         oldValCol = currentColumn; 
+       }else if( ss.getRange(1, columnNum).getValue() === "Report Start Date")
+       {
+         reportCol = currentColumn; 
+       }else if( ss.getRange(1, columnNum).getValue() === "Last Updated")
+       {
+         dateCol = currentColumn; 
+       }else if( ss.getRange(1, columnNum).getValue() === "Total Count")
+       {
+         totalCol = currentColumn; 
+       }
+   }    
+      
+    Logger.log("Status Column Set To: " + statusCol);
+    Logger.log("Previous Rpt Dt Column Set To: " + oldRptDateCol);
+    Logger.log("Previous Status Column Set To: " + oldValCol);
+    Logger.log("Report Start Date Column Set To: " + reportCol);
+    Logger.log("Last Update Date Column Set To: " + dateCol);
+    Logger.log("Total Count Column Set To: " + totalCol);
+    
+    
+    for( var currentRow = rowStart; currentRow <= rowEnd; currentRow ++)
+    {    
+    
+      
+      Logger.log("============================ Row: " + currentRow + " Start =============================" );
+ 
+      
       var oldUpdateDate = "";
       var today = new Date().toISOString().slice(0,10);    
       var currentDate = new Date(); 
@@ -250,7 +301,37 @@ function getWeekOfMonth(date) {
 }
 
 
+
+
+// Function name: writeLog
+//        Author: D.DiCesare 
+//   Description: Writes message to log and rownumber
+//    Parameters: message: string of what to write into log
+//                rownumber: row being processed
+//       Returns: Int: NA
+//     Revisions: DCD 11/10/2020: Initial
 function writeLog(message, rowNumber)
 {
   Logger.log( "Row: " + rowNumber + " : " + message);
+}
+
+
+
+
+// Function name: columnToLetter
+//        Author: D.DiCesare 
+//   Description: Converts number column to letter
+//    Parameters: column: column number
+//       Returns: column letter
+//     Revisions: DCD 11/11/2020: Initial
+function columnToLetter(column)
+{
+  var temp, letter = '';
+  while (column > 0)
+  {
+    temp = (column - 1) % 26;
+    letter = String.fromCharCode(temp + 65) + letter;
+    column = (column - temp - 1) / 26;
+  }
+  return letter;
 }
