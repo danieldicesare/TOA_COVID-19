@@ -1,5 +1,5 @@
 // Function name: onEdit
-//        Author: D.DiCesare / W McKenzie
+//        Author: D.DiCesare (DD) / W McKenzie(WAM)
 //   Description: Event that fires off any time something happens on the sheets. Conditions placed to specficially look at the Census tab and the 
 //                status column. 
 //                *** Please note, this is a workable soltuion that ties into a report that displays on the internet (See Wally for report name and location). 
@@ -19,6 +19,7 @@
 //                                                 finally, users now want data as of last night as opposed to last Friday, continue to voice that data should be real time 
 //                DCD 11/20/2020: Final version designed to extract data from aggregate tab and store in columns on the agreggate tab which will drive the report on the andover site. It has been 
 //                                discussed that the number of dependencies that this approach has is somewhat dangerous. However, the risks have been deemed to be acceptable. 
+//                WAM 11/22/2020: Add Trigger to execute the script nightly between 12:00 AM and 1:00 AM to ensure the update takes place
 function onEdit(e) {
 
   if(e.source.getActiveSheet().getName() != "Aggreg_Dashboard"){
@@ -158,24 +159,31 @@ function snapShot()
   
   if( lastSnapDate < today)
   {    
-    aggTab.getRange(2,12).setValue(today);
+    // Update last snap shot date
+    aggTab.getRange(2,12).setValue(today);    
     
+    // Get the maximum number of rows in the tab
     var maxRow = aggTab.getMaxRows();
 
     Logger.log("MaxRows: " + maxRow);    
         
     for(var currentRow = 2; currentRow < maxRow; currentRow ++)
     {
-      if(aggTab.getRange(currentRow,1).getValue() === "Total")
+      // Look for the "total" cell. If reached, we are done
+      if(aggTab.getRange(currentRow,1).getValue() === "Total" || aggTab.getRange(currentRow,1).getValue() === "")
       {
         break;
       }
       
       Logger.log(aggTab.getRange(currentRow,1).getValue() + ": " + aggTab.getRange(currentRow,2).getValue());
       
+      // Update the snap shot row/col
       aggTab.getRange(currentRow,13).setValue(aggTab.getRange(currentRow,2).getValue());
       
     }
+  }else
+  {
+    Logger.log("Snapshot ok: Current Date:" + today + " | Last Snap Shot Date: " + lastSnapDate);
   }
   
   
